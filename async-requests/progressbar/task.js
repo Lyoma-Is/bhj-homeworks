@@ -1,15 +1,15 @@
-'use strict';
+const form = document.getElementById('form');
+const progress = document.getElementById('progress');
 
-document.getElementsByTagName('input').file.onchange = function(event) {
-    let file = this.files[0];
-    document.getElementById('send').onclick = function() {
-        const request = new XMLHttpRequest
-        request.upload.onprogress = function (event) {
-            const progress = document.getElementById( 'progress' );
-            progress.value = (event.loaded / event.total).toFixed(3);
-        };
-        request.open('POST', 'https://netology-slow-rest.herokuapp.com/upload.php');
-        request.send(file);
-        return false;
-    };
-};
+form.addEventListener('submit', e => {
+	e.preventDefault();
+	const formData = new FormData(form);
+	const xhr = new XMLHttpRequest();
+	xhr.open('POST', 'https://students.netoservices.ru/nestjs-backend/upload');
+	xhr.upload.addEventListener('progress', el => {
+		if (xhr.readyState !== xhr.DONE) {
+			progress.value = (el.loaded / el.total).toFixed(2)
+		}
+	})
+	xhr.send(formData)
+})
