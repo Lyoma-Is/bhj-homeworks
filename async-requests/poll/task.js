@@ -1,43 +1,26 @@
-'use strict';
+const xhr = new XMLHttpRequest();
+const poll = document.querySelector('.poll')
+const pollAnswers = document.getElementById('poll__answers');
+const title = document.getElementById('poll__title');
 
-const getRequest = new XMLHttpRequest;
-getRequest.open('GET', 'https://netology-slow-rest.herokuapp.com/poll.php');
-getRequest.send();
-getRequest.onreadystatechange = function () {
-    if (getRequest.readyState == 4 && getRequest.status == 200) {
-        let data = JSON.parse(getRequest.responseText).data;
-        let inqueryId = JSON.parse(getRequest.responseText).id;
-        let pollClass = document.querySelector('div.poll');
+xhr.open('GET', 'https://students.netoservices.ru/nestjs-backend/poll');
+xhr.addEventListener('readystatechange', () => {
+	if (xhr.readyState === xhr.DONE) {
+		const poll = JSON.parse(xhr.responseText);
+		title.innerText = poll.data.title;
 
-        // question
-        pollClass.insertAdjacentHTML('afterbegin', `<div class="poll__title" id="poll__title">${data.title}</div>`);
+		let buttonsHTML = '';
+		for (let i = 0; i < poll.data.answers.length; i++) {
+			buttonsHTML += '<button class="poll__answer">' + poll.data.answers[i] + '</button>';
+			pollAnswers.innerHTML = buttonsHTML;
+		};
+		const btns = document.querySelectorAll('.poll__answer')
+		for (btn of btns) {
+			btn.addEventListener('click', () => {
+				alert('Спасибо, ваш голос засчитан!')
+			})
+		}
+	}
+})
 
-        // answers
-        for (let answer in {...data.answers}) {
-            pollClass.insertAdjacentHTML('beforeend', `<button class="poll__answer">${{...data.answers}[answer]}</button>`);
-        };
-
-        // get answer
-        Array.from(document.querySelectorAll('button.poll__answer')).forEach(function (button, index) {
-            button.onclick = function (event) {
-                alert('Спасибо, ваш голос засчитан!');
-
-                const postRequest = new XMLHttpRequest;
-                postRequest.open( 'POST', 'https://netology-slow-rest.herokuapp.com/poll.php' );
-                postRequest.setRequestHeader( 'Content-type', 'application/x-www-form-urlencoded' );
-                postRequest.send( `vote=${inqueryId}&answer=${++index}` );
-                postRequest.onreadystatechange = function () {
-                    if (postRequest.readyState == 4 && postRequest.status == 200) {
-                        let response = Array.from(JSON.parse(postRequest.responseText).stat);
-                        let votesSum = response.reduce(function(prev, cur) { return prev + cur.votes }, 0);
-                        for (let item in response) {
-                            document.querySelector('div.poll').insertAdjacentHTML('beforeend',
-                                `<div class="poll__answers poll__answers_active" id="poll__answers">${response[item].answer}: <b>${(response[item].votes / votesSum * 100).toFixed(2)}%</b></div>`
-                                );
-                        };
-                    };
-                };
-            };
-        });
-    };
-};
+xhr.send();
